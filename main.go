@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strconv"
@@ -31,6 +30,20 @@ type Request struct {
 	Params  [][]string `json:"params"`
 }
 
+type Response struct {
+	Id      string
+	Jsonrpc string
+	Result  string
+}
+
+type Answer struct {
+	id      string  `json:"id"`
+	link    string  `json:"link"`
+	name    string  `json:"name"`
+	ariaId  string  `json:"ariaId"`
+	request Request `json:"request"`
+}
+
 func NewRequest(link string) Request {
 	request := Request{}
 	request.Jsonrpc = "2.0"
@@ -42,43 +55,43 @@ func NewRequest(link string) Request {
 	return request
 }
 
-func CreateRequests(links []string) []Request {
-	var requests []Request
-	for _, v := range links {
-		requests = append(requests, NewRequest(v))
+func CreateLink(conf Configuration, value putio.File, links []string, answers []Answer) ([]string, []Answer) {
+	if value.IsDir() {
+		fmt.Println(value.Name, "is Folder adding to check for contents")
+		links, answers = AddLink(conf, value.ID, links, answers)
+	} else {
+		var currentAnswer Answer
+		var builder strings.Builder
+		builder.WriteString("https://api.put.io/v2/files/")
+		builder.WriteString(strconv.FormatInt(value.ID, 10))
+		builder.WriteString("/download?oauth_token=")
+		builder.WriteString(conf.oauthToken)
+		currentlink := builder.String()
+		fmt.Println(value.ID, ": ", value.Name, "\nlink: ", currentlink)
+		currentAnswer.id = strconv.FormatInt(value.ID, 10)
+		currentAnswer.link = currentlink
+		links = append(links, currentlink)
+		answers = append(answers, currentAnswer)
+
 	}
-	return requests
+	return links, answers
 }
 
-func AddLink(conf Configuration, dir int64, links []string) []string {
+func AddLink(conf Configuration, dir int64, links []string, answers []Answer) ([]string, []Answer) {
 	fmt.Println("Checking folder: ", strconv.FormatInt(dir, 10))
-	link := "https://api.put.io/v2/files/"
-	var builder strings.Builder
 	list, _, err := conf.client.Files.List(context.Background(), dir)
 	if err != nil {
 		log.Fatal("error:", err)
 	}
 
 	for _, value := range list {
-		if len(conf.filter) == 0 && strings.Contains(value.Name, conf.filter) {
-			if value.IsDir() {
-				fmt.Println(value.Name, "is Folder adding to check for contents")
-				links = AddLink(conf, value.ID, links)
-			} else {
-				builder.WriteString(link)
-				builder.WriteString(strconv.FormatInt(value.ID, 10))
-				//builder.WriteString("609933704")
-				builder.WriteString("/download?oauth_token=")
-				builder.WriteString(conf.oauthToken)
-				currentlink := builder.String()
-				builder.Reset()
-				fmt.Println(value.ID, ": ", value.Name, "\nlink: ", currentlink)
-				links = append(links, currentlink)
-
-			}
+		if len(conf.filter) == 0 {
+			links, answers = CreateLink(conf, value, links, answers)
+		} else if strings.Contains(value.Name, conf.filter) {
+			links, answers = CreateLink(conf, value, links, answers)
 		}
 	}
-	return links
+	return links, answers
 }
 
 func Read(filename string, filter string) Configuration {
@@ -87,7 +100,6 @@ func Read(filename string, filter string) Configuration {
 	if err != nil {
 		panic(err)
 	} else {
-		fmt.Println("Reading configuration file")
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			text := scanner.Text()
@@ -96,6 +108,7 @@ func Read(filename string, filter string) Configuration {
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: conf.oauthToken})
 		conf.oauthClient = oauth2.NewClient(oauth2.NoContext, tokenSource)
 		conf.client = putio.NewClient(conf.oauthClient)
+		fmt.Println("Using oauth Token: ", conf.oauthToken)
 	}
 	if len(filter) > 0 {
 		conf.filter = filter
@@ -103,10 +116,10 @@ func Read(filename string, filter string) Configuration {
 	return conf
 }
 
-func Send(jsonRequest Request) bool {
+func Send(answer Answer) bool {
 	//url := "http://172.17.0.2:6800/jsonrpc"
 	url := "http://localhost:6800/jsonrpc"
-	b, err := json.Marshal(jsonRequest)
+	b, err := json.Marshal(answer.request)
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -117,22 +130,50 @@ func Send(jsonRequest Request) bool {
 
 	aria := http.Client{}
 	resp, err := aria.Do(req)
+	fmt.Println("Status: ", resp.Status)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	test, err := io.Copy(os.Stdout, resp.Body)
-	fmt.Println(test)
+
+	decoder := json.NewDecoder(resp.Body)
+
+	for decoder.More() {
+		var m Response
+		err = decoder.Decode(&m)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("result: ", m.Result)
+		answer.ariaId = m.Result
+	}
+
 	return true
 }
 
 func main() {
 	var links []string
-	conf := Read("secret.conf", "")
-	links = AddLink(conf, 0, links)
-	request := CreateRequests(links)
-	//fmt.Println("preparing to send:\n", request)
-	for _, v := range request {
+	var answers []Answer
+	var conf Configuration
+	argsWithProg := os.Args
+
+	i := len(argsWithProg)
+	switch i {
+	case 2:
+		fmt.Println("reading config file: ", argsWithProg[1])
+		conf = Read(argsWithProg[1], "")
+		fmt.Println("Running without filter")
+	case 3:
+		fmt.Println("reading config file: ", argsWithProg[1])
+		conf = Read(argsWithProg[1], argsWithProg[2])
+		fmt.Println("Running with filter", conf.filter)
+	default:
+		panic("script was used wrong:\n putio-go-aria2 oauth.secret\nputio-go-aria2 oauth.secret filter")
+	}
+
+	links, answers = AddLink(conf, 0, links, answers)
+	for _, v := range answers {
+		v.request = NewRequest(v.link)
 		Send(v)
 	}
 }
