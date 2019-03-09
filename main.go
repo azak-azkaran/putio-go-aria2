@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -16,7 +17,12 @@ import (
 	"net/http"
 )
 
-const oauthToken = ""
+type Configuration struct {
+	oauthToken  string
+	oauthClient *http.Client
+	client      *putio.Client
+	filter      string
+}
 
 type Request struct {
 	Jsonrpc string     `json:"jsonrpc"`
@@ -44,26 +50,26 @@ func CreateRequests(links []string) []Request {
 	return requests
 }
 
-func AddLink(client *putio.Client, dir int64, links []string) []string {
+func AddLink(conf Configuration, dir int64, links []string) []string {
 	fmt.Println("Checking folder: ", strconv.FormatInt(dir, 10))
 	link := "https://api.put.io/v2/files/"
 	var builder strings.Builder
-	list, _, err := client.Files.List(context.Background(), dir)
+	list, _, err := conf.client.Files.List(context.Background(), dir)
 	if err != nil {
 		log.Fatal("error:", err)
 	}
 
 	for _, value := range list {
-		if strings.Contains(value.Name, "H264") {
+		if len(conf.filter) == 0 && strings.Contains(value.Name, conf.filter) {
 			if value.IsDir() {
 				fmt.Println(value.Name, "is Folder adding to check for contents")
-				links = AddLink(client, value.ID, links)
+				links = AddLink(conf, value.ID, links)
 			} else {
 				builder.WriteString(link)
 				builder.WriteString(strconv.FormatInt(value.ID, 10))
 				//builder.WriteString("609933704")
 				builder.WriteString("/download?oauth_token=")
-				builder.WriteString(oauthToken)
+				builder.WriteString(conf.oauthToken)
 				currentlink := builder.String()
 				builder.Reset()
 				fmt.Println(value.ID, ": ", value.Name, "\nlink: ", currentlink)
@@ -73,6 +79,28 @@ func AddLink(client *putio.Client, dir int64, links []string) []string {
 		}
 	}
 	return links
+}
+
+func Read(filename string, filter string) Configuration {
+	file, err := os.Open(filename)
+	var conf Configuration
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("Reading configuration file")
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			text := scanner.Text()
+			conf.oauthToken = text
+		}
+		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: conf.oauthToken})
+		conf.oauthClient = oauth2.NewClient(oauth2.NoContext, tokenSource)
+		conf.client = putio.NewClient(conf.oauthClient)
+	}
+	if len(filter) > 0 {
+		conf.filter = filter
+	}
+	return conf
 }
 
 func Send(jsonRequest Request) bool {
@@ -100,11 +128,8 @@ func Send(jsonRequest Request) bool {
 
 func main() {
 	var links []string
-	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: oauthToken})
-	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
-
-	client := putio.NewClient(oauthClient)
-	links = AddLink(client, 0, links)
+	conf := Read("secret.conf", "")
+	links = AddLink(conf, 0, links)
 	request := CreateRequests(links)
 	//fmt.Println("preparing to send:\n", request)
 	for _, v := range request {
