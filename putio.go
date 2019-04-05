@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/orcaman/concurrent-map"
 	"github.com/putdotio/go-putio/putio"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -36,10 +37,10 @@ func CreateConfiguration(oauthToken string, filter string) Configuration {
 	return conf
 }
 
-func CreateLink(conf Configuration, value putio.File, links []string, answers []Answer) ([]string, []Answer) {
+func CreateLink(conf Configuration, value putio.File, answers cmap.ConcurrentMap) {
 	if value.IsDir() {
 		Info.Println(value.Name, "is Folder adding to check for contents")
-		links, answers = AddLink(conf, value.ID, links, answers)
+		AddLink(conf, value.ID, answers)
 	} else {
 		var currentAnswer Answer
 		var builder strings.Builder
@@ -50,16 +51,15 @@ func CreateLink(conf Configuration, value putio.File, links []string, answers []
 		currentlink := builder.String()
 		currentAnswer.ID = strconv.FormatInt(value.ID, 10)
 		currentAnswer.Link = currentlink
-		links = append(links, currentlink)
-		answers = append(answers, currentAnswer)
-
-		Info.Println(value.ID, ": ", value.Name, "\nlink: ", currentlink)
-
+		currentAnswer.Name = value.Name
+		currentAnswer.Request = AddURI(currentAnswer.Link)
+		answers.Set(currentAnswer.ID, currentAnswer)
+		Info.Println(value.ID, ": ", currentAnswer.Name)
+		Info.Println("link: ", currentAnswer.Link)
 	}
-	return links, answers
 }
 
-func AddLink(conf Configuration, dir int64, links []string, answers []Answer) ([]string, []Answer) {
+func AddLink(conf Configuration, dir int64, answers cmap.ConcurrentMap) {
 	Info.Println("Checking folder: ", strconv.FormatInt(dir, 10))
 	list, _, err := conf.client.Files.List(context.Background(), dir)
 	if err != nil {
@@ -68,10 +68,9 @@ func AddLink(conf Configuration, dir int64, links []string, answers []Answer) ([
 
 	for _, value := range list {
 		if len(conf.filter) == 0 {
-			links, answers = CreateLink(conf, value, links, answers)
+			CreateLink(conf, value, answers)
 		} else if strings.Contains(value.Name, conf.filter) {
-			links, answers = CreateLink(conf, value, links, answers)
+			CreateLink(conf, value, answers)
 		}
 	}
-	return links, answers
 }

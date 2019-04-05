@@ -25,7 +25,7 @@ func TestWrite(t *testing.T) {
 		t.Error("testfile could not be created\nFilename: ", filename)
 	}
 
-	if strings.Compare(filename, foldername+"/"+answer.AriaID+".json") != 0 {
+	if strings.Compare(filename, foldername+"/"+answer.ID+".json") != 0 {
 		t.Error("filename is not correct")
 	}
 

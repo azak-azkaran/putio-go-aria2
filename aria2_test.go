@@ -53,8 +53,9 @@ func TestTellStatus(t *testing.T) {
 		t.Error(err)
 	}
 	requestString := string(b)
+	fmt.Println(requestString)
 
-	if !strings.Contains(requestString, "params\":[[\"testLink\"]]") {
+	if !strings.Contains(requestString, "params\":[\"testLink\"]") {
 		fmt.Println("generated JSON\t:", requestString)
 		t.Error("Link part is not in the JSON")
 	}

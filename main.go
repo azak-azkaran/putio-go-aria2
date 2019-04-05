@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/orcaman/concurrent-map"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -41,19 +42,35 @@ func Write(foldername string, answer Answer) (string, error) {
 	var filename strings.Builder
 	filename.WriteString(foldername)
 	filename.WriteString("/")
-	filename.WriteString(answer.AriaID)
+	filename.WriteString(answer.ID)
 	filename.WriteString(".json")
 
 	err = ioutil.WriteFile(filename.String(), b, 0644)
 	return filename.String(), err
 }
 
+func SendToAria(respond chan<- Answer, request Request, answer Answer, url string) {
+	result, err := Send(request, url)
+	if err != nil {
+		Error.Fatalln(result, err)
+		return
+	} else {
+		answer.AriaID = result
+		filename, err := Write("jsons", answer)
+		if err != nil {
+			Warning.Println("File for: ", answer.Name, "\tFilename: ", filename)
+		} else {
+			Info.Println(answer.Name, " send to aria and writen to informatione writen to file: ", filename)
+		}
+	}
+	respond <- answer
+}
+
 func main() {
 	Init(os.Stdout, os.Stdout, os.Stderr)
 
 	url := "http://localhost:6800/jsonrpc"
-	var links []string
-	var answers []Answer
+	answers := cmap.New()
 	var conf Configuration
 	argsWithProg := os.Args
 
@@ -72,16 +89,16 @@ func main() {
 		panic("Dying horribly")
 	}
 
-	_, answers = AddLink(conf, 0, links, answers)
-	for _, v := range answers {
-		v.Request = AddURI(v.Link)
-		if Send(v, url) {
-			filename, err := Write("jsons", v)
-			if err != nil {
-				Warning.Println("File for: ", v.Name, "\tFilename: ", filename)
-			} else {
-				Info.Println(v.Name, " send to aria and writen to informatione writen to file: ", filename)
-			}
-		}
+	AddLink(conf, 0, answers)
+	respond := make(chan Answer)
+	for item := range answers.IterBuffered() {
+		v := item.Val.(Answer)
+		go SendToAria(respond, v.Request, v, url)
+	}
+
+	for item := range answers.IterBuffered() {
+		v := item.Val.(Answer)
+		Info.Println("File: ", v.Name)
+		Info.Println("Respond: ", v.AriaID)
 	}
 }

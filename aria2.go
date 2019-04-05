@@ -50,17 +50,15 @@ func TellStatus(link string) Request {
 	return request
 }
 
-func Send(answer Answer, url string) bool {
-	b, err := json.Marshal(answer.Request)
+func Send(request Request, url string) (string, error) {
+	b, err := json.Marshal(request)
 	if err != nil {
-		Error.Fatalln(err)
-		return false
+		return "Error while Marshaling the Request: ", err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
 	if err != nil {
-		Error.Fatalln("Error while converting json to http request:", err)
-		return false
+		return "Error while converting json to http request:", err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -68,23 +66,21 @@ func Send(answer Answer, url string) bool {
 	resp, err := aria.Do(req)
 	Info.Println("Status: ", resp.Status)
 	if err != nil {
-		Error.Fatalln("Error while sending to Aria2:", err)
-		return false
+		return "Error while sending to Aria2:", err
 	}
 	defer resp.Body.Close()
 
 	decoder := json.NewDecoder(resp.Body)
 
+	var result string
 	for decoder.More() {
 		var m Response
 		err = decoder.Decode(&m)
 		if err != nil {
-			Error.Fatalln("Error while decoding json:", err)
-			Error.Fatalln(err)
+			return "Error while decoding json:", err
 		}
 		Info.Println("result: ", m.Result)
-		answer.AriaID = m.Result
+		result = m.Result
 	}
-
-	return true
+	return result, nil
 }
