@@ -1,4 +1,4 @@
-package main
+package aria2downloader
 
 import (
 	"encoding/json"
@@ -30,7 +30,7 @@ func TestAddUri(t *testing.T) {
 		t.Error("method name not in JSON")
 	}
 
-	schemaData, err := ioutil.ReadFile("RequestSchema.json")
+	schemaData, err := ioutil.ReadFile("../schema/AddAriaRequest.json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -44,7 +44,6 @@ func TestAddUri(t *testing.T) {
 }
 
 func TestTellStatus(t *testing.T) {
-
 	link := "testLink"
 	request := TellStatus(link)
 	b, err := json.Marshal(request)
@@ -65,7 +64,7 @@ func TestTellStatus(t *testing.T) {
 		t.Error("method name not in JSON")
 	}
 
-	schemaData, err := ioutil.ReadFile("RequestSchema.json")
+	schemaData, err := ioutil.ReadFile("../schema/TellStatusRequest.json")
 	if err != nil {
 		t.Error(err)
 	}

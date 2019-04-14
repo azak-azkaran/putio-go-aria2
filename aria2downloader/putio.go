@@ -1,7 +1,8 @@
-package main
+package aria2downloader
 
 import (
 	"context"
+	"github.com/azak-azkaran/putio-go-aria2/utils"
 	"strconv"
 	"strings"
 
@@ -25,9 +26,9 @@ func CreateConfiguration(oauthToken string, filter string) Configuration {
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: conf.oauthToken})
 		conf.oauthClient = oauth2.NewClient(context.TODO(), tokenSource)
 		conf.client = putio.NewClient(conf.oauthClient)
-		Info.Println("Using oauth Token: ", conf.oauthToken)
+		utils.Info.Println("Using oauth Token: ", conf.oauthToken)
 	} else {
-		Error.Fatalln("No Token found")
+		utils.Error.Fatalln("No Token found")
 		panic("No Token found")
 	}
 
@@ -39,7 +40,7 @@ func CreateConfiguration(oauthToken string, filter string) Configuration {
 
 func CreateLink(conf Configuration, value putio.File, answers cmap.ConcurrentMap) {
 	if value.IsDir() {
-		Info.Println(value.Name, "is Folder adding to check for contents")
+		utils.Info.Println(value.Name, "is Folder adding to check for contents")
 		AddLink(conf, value.ID, answers)
 	} else {
 		var currentAnswer Answer
@@ -54,16 +55,16 @@ func CreateLink(conf Configuration, value putio.File, answers cmap.ConcurrentMap
 		currentAnswer.Name = value.Name
 		currentAnswer.Request = AddURI(currentAnswer.Link)
 		answers.Set(currentAnswer.ID, currentAnswer)
-		Info.Println(value.ID, ": ", currentAnswer.Name)
-		Info.Println("link: ", currentAnswer.Link)
+		utils.Info.Println(value.ID, ": ", currentAnswer.Name)
+		utils.Info.Println("link: ", currentAnswer.Link)
 	}
 }
 
 func AddLink(conf Configuration, dir int64, answers cmap.ConcurrentMap) {
-	Info.Println("Checking folder: ", strconv.FormatInt(dir, 10))
+	utils.Info.Println("Checking folder: ", strconv.FormatInt(dir, 10))
 	list, _, err := conf.client.Files.List(context.Background(), dir)
 	if err != nil {
-		Error.Fatalln("error:", err)
+		utils.Error.Fatalln("error:", err)
 	}
 
 	for _, value := range list {

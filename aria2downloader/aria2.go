@@ -1,35 +1,42 @@
-package main
+package aria2downloader
 
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/azak-azkaran/putio-go-aria2/utils"
 	"net/http"
 )
 
-// Answer Comment
 type Answer struct {
-	ID      string  `json:"id"`
-	Link    string  `json:"link"`
-	Name    string  `json:"name"`
-	AriaID  string  `json:"ariaId"`
-	Request Request `json:"request"`
+	ID      string            `json:"id"`
+	Link    string            `json:"link"`
+	Name    string            `json:"name"`
+	AriaID  string            `json:"ariaId"`
+	Request AddUriRequest     `json:"request"`
+	Status  TellStatusRequest `json:"status"`
 }
 
-type Request struct {
+type AddUriRequest struct {
 	Jsonrpc string     `json:"jsonrpc"`
 	ID      string     `json:"id"`
 	Method  string     `json:"method"`
 	Params  [][]string `json:"params"`
 }
 
+type TellStatusRequest struct {
+	Jsonrpc string   `json:"jsonrpc"`
+	ID      string   `json:"id"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+}
 type Response struct {
 	ID      string
 	Jsonrpc string
 	Result  string
 }
 
-func AddURI(link string) Request {
-	request := Request{}
+func AddURI(link string) AddUriRequest {
+	request := AddUriRequest{}
 	request.Jsonrpc = "2.0"
 	request.ID = "qwer"
 	request.Method = "aria2.addUri"
@@ -39,24 +46,17 @@ func AddURI(link string) Request {
 	return request
 }
 
-func TellStatus(link string) Request {
-	request := Request{}
+func TellStatus(link string) TellStatusRequest {
+	request := TellStatusRequest{}
 	request.Jsonrpc = "2.0"
 	request.ID = "qwer"
 	request.Method = "aria2.tellStatus"
-	var nested []string
-	nested = append(nested, link)
-	request.Params = append(request.Params, nested)
+	request.Params = append(request.Params, link)
 	return request
 }
 
-func Send(request Request, url string) (string, error) {
-	b, err := json.Marshal(request)
-	if err != nil {
-		return "Error while Marshaling the Request: ", err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
+func Send(request []byte, url string) (string, error) {
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(request))
 	if err != nil {
 		return "Error while converting json to http request:", err
 	}
@@ -64,11 +64,11 @@ func Send(request Request, url string) (string, error) {
 
 	aria := http.Client{}
 	resp, err := aria.Do(req)
-	Info.Println("Status: ", resp.Status)
 	if err != nil {
 		return "Error while sending to Aria2:", err
 	}
 	defer resp.Body.Close()
+	utils.Info.Println("Status: ", resp.Status)
 
 	decoder := json.NewDecoder(resp.Body)
 
@@ -79,7 +79,7 @@ func Send(request Request, url string) (string, error) {
 		if err != nil {
 			return "Error while decoding json:", err
 		}
-		Info.Println("result: ", m.Result)
+		utils.Info.Println("result: ", m.Result)
 		result = m.Result
 	}
 	return result, nil

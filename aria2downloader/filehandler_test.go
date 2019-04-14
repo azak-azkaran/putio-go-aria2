@@ -1,4 +1,4 @@
-package main
+package aria2downloader
 
 import (
 	"fmt"
@@ -57,7 +57,6 @@ func TestRead(t *testing.T) {
 	if _, err := os.Stat(foldername); os.IsNotExist(err) {
 		err = os.Mkdir(foldername, os.ModePerm)
 		if err != nil {
-			Error.Fatalln(err)
 			t.Error("Folder not created", err)
 		}
 	}

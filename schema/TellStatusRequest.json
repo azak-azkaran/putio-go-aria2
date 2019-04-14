@@ -1,0 +1,27 @@
+{
+  "title": "aria2 Request",
+  "type": "object",
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "jsonrpc",
+    "id",
+    "method",
+    "params"
+  ]
+}
