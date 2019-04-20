@@ -64,10 +64,12 @@ func GetFolderInformation(conf Configuration, folderName string, dir int64, fold
 	}
 }
 
-func RemoveOnlineFile(conf Configuration, file PutIoFiles) {
+func RemoveOnlineFile(conf Configuration, file PutIoFiles) bool {
 	utils.Info.Println("Deleting File: ", file.Name)
 	err := conf.client.Files.Delete(context.Background(), file.PutIoID)
 	if err != nil {
 		utils.Error.Fatalln("error:", err)
+		return false
 	}
+	return true
 }

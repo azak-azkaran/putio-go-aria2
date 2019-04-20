@@ -27,7 +27,7 @@ func Run(configfile string, filter string) {
 	}
 }
 
-func main() {
+func _() {
 	utils.Init(os.Stdout, os.Stdout, os.Stderr)
 	configfile, _, filter, err := utils.GetArguments()
 	if err != nil {

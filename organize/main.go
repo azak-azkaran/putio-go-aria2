@@ -15,10 +15,10 @@ func Run(configfile string, foldername string) {
 	if foldername == "" {
 		foldername = "~/Downloads"
 	}
-	OrganizeFolder(foldername, folders, conf)
+	GoOrganizeFolder(foldername, folders, conf)
 }
 
-func main() {
+func _() {
 	utils.Init(os.Stdout, os.Stdout, os.Stderr)
 
 	configfile, _, foldername, err := utils.GetArguments()

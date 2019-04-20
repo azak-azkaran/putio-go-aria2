@@ -43,32 +43,38 @@ func CreateFolder(path string) bool {
 }
 
 func CompareFiles(path string, file PutIoFiles) int {
-	offline_file, err := os.Open(path)
+	offlineFile, err := os.Open(path)
 	if err != nil {
 		utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
 		return -1
 	}
-	defer offline_file.Close()
-
 	hash := crc32.NewIEEE()
-
 	//Copy the file in the interface
-	if _, err := io.Copy(hash, offline_file); err != nil {
-		utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
+	if _, err := io.Copy(hash, offlineFile); err != nil {
+		utils.Error.Fatalln("Error while copying file for CRC : ", file.Name, "\tError: ", err)
+		return -1
+	}
+
+	err = offlineFile.Close()
+	if err != nil {
+		utils.Error.Fatalln("Error while closing file: ", file.Name, "\tError: ", err)
+		return -1
 	}
 	//Generate the hash
 	hashInBytes := hash.Sum32()
 
 	//Encode the hash to a string
-	crc := strconv.FormatUint(uint64(hashInBytes), 16)
+	crc := int64(hashInBytes)
 
+	fileCrc, err := strconv.ParseInt(file.CRC32, 16, 64)
+	if err != nil {
+		utils.Error.Fatalln("Error while converting CRC from Putio: ", err)
+		return -1
+	}
 	utils.Info.Println("File: ", file.Name, "\tFolder: ", file.Folder)
-	if strings.Compare(crc, file.CRC32) != 0 {
-		utils.Warning.Println("CRC values are different", "\nCRC: ", file.CRC32, "\nCRC: ", crc)
-		if strings.Contains(file.CRC32, crc) && len(file.CRC32)-1 == len(crc) {
-			utils.Warning.Println("but crc value is contained")
-			return 0
-		}
+	if fileCrc != crc {
+		utils.Warning.Println("CRC values are different", "\nOnline CRC: ", strconv.FormatInt(fileCrc, 16), "\nOffline CRC: ", strconv.FormatInt(crc, 16))
+
 		stats, _ := os.Stat(path)
 		if stats.Size() != file.Size {
 			utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
@@ -84,24 +90,24 @@ func CompareFiles(path string, file PutIoFiles) int {
 	return 0
 }
 
-func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration) {
-	complete_filepath := foldername + file.Name()
-	complete_folderpath := foldername + putFile.Folder
-	compare := CompareFiles(complete_filepath, putFile)
+func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool) {
+	completeFilepath := foldername + file.Name()
+	completeFolderpath := foldername + putFile.Folder
+	compare := CompareFiles(completeFilepath, putFile)
 	if compare != -1 {
-		CreateFolder(complete_folderpath)
-		if compare == 0 {
+		CreateFolder(completeFolderpath)
+		if compare == 0 && removeFile {
 			RemoveOnlineFile(conf, putFile)
 		}
 
-		newfolder, err := os.Stat(complete_folderpath)
+		newfolder, err := os.Stat(completeFolderpath)
 		if err != nil {
 			utils.Error.Fatalln("Error Folder missing will not move file: ", err)
 			return
 		} else {
 			if len(putFile.Folder) != 0 && newfolder.IsDir() {
-				utils.Info.Println("Moving to: ", complete_folderpath+"/"+putFile.Name)
-				err := os.Rename(complete_filepath, complete_folderpath+"/"+putFile.Name)
+				utils.Info.Println("Moving to: ", completeFolderpath+"/"+putFile.Name)
+				err := os.Rename(completeFilepath, completeFolderpath+"/"+putFile.Name)
 				if err != nil {
 					utils.Error.Fatalln("Error while moving File: ", putFile.Name, "\n", err)
 					return
@@ -111,10 +117,15 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 	}
 }
 
-func OrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configuration) {
+func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configuration) []os.FileInfo {
 	files, err := ioutil.ReadDir(foldername)
 	if err != nil {
 		utils.Error.Fatalln(err)
+		return nil
+	}
+
+	if !strings.HasSuffix(foldername, "/") {
+		foldername = foldername + "/"
 	}
 
 	utils.Info.Println("Checking Files on Disk")
@@ -122,7 +133,8 @@ func OrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configur
 		value, ok := folders.Get(file.Name())
 		if !file.IsDir() && ok {
 			v := value.(PutIoFiles)
-			HandleFile(v, file, foldername, conf)
+			HandleFile(v, file, foldername, conf, true)
 		}
 	}
+	return files
 }

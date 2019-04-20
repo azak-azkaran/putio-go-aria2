@@ -20,7 +20,7 @@ func GetArguments() (string, string, string, error) {
 		mode, err := reader.ReadString('\n')
 		if err != nil {
 			Error.Fatalln("Error while reading Input")
-			return "", "", "", errors.New("Error while reading")
+			return "", "", "", errors.New("error while reading")
 		}
 
 		Info.Println("reading config file: ", configfile)
@@ -44,6 +44,6 @@ func GetArguments() (string, string, string, error) {
 
 	default:
 		Error.Fatalln("script was used wrong:\n putio-go-aria2 oauth.secret\nputio-go-aria2 oauth.secret filter")
-		return "", "", "", errors.New("Wrong usage")
+		return "", "", "", errors.New("wrong usage")
 	}
 }
