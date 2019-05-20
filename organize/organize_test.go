@@ -78,7 +78,7 @@ func TestOrganizeFolder(t *testing.T) {
 	folders := cmap.New()
 	var conf Configuration
 
-	path := "/mnt/2tb/Downloads"
+	path := "../testdata"
 	_, err := os.Stat(path)
 	if err != nil && os.IsNotExist(err) {
 		t.Error("Folder is already there")
@@ -108,7 +108,7 @@ func TestHandleFile(t *testing.T) {
 	putio.Folder = "test/"
 	putio.Name = "output.json"
 	putio.PutIoID = 23
-	putio.CRC32, _ = CreateCrc32("../output.json")
+	putio.CRC32, _ = CreateCrc32("../testdata/output.json")
 	putio.Size = file.Size()
 	err = Copy("../testdata/output.json", "../output.json")
 	if err != nil {
