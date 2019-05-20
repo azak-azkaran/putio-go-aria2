@@ -52,18 +52,18 @@ func TestCompareFiles(t *testing.T) {
 	putio.Size = file.Size()
 
 	output := CompareFiles("../output.json", putio)
-	if output != 0 {
+	if !output {
 		t.Error("Compared failed")
 	}
 	putio.CRC32 = "cca7c6b3"
 	output = CompareFiles("../output.json", putio)
-	if output != 1 {
+	if output {
 		t.Error("Compared failed")
 	}
 
 	putio.CRC32 = "00188c02"
 	output = CompareFiles("../output.json", putio)
-	if output != 1 {
+	if output {
 		t.Error("Compared failed even with padding")
 	}
 
@@ -95,12 +95,12 @@ func TestHandleFile(t *testing.T) {
 	var conf Configuration
 	var putio PutIoFiles
 
-	file, err := os.Stat("../test/output.json")
+	_, err := os.Stat("../test/output.json")
 	if err != nil && !os.IsNotExist(err) {
 		t.Error("File already moved")
 	}
 
-	file, err = os.Stat("../testdata/output.json")
+	file, err := os.Stat("../testdata/output.json")
 	if err != nil {
 		t.Error("testdata not available")
 	}
@@ -121,7 +121,7 @@ func TestHandleFile(t *testing.T) {
 	}
 	HandleFile(putio, file, "../", conf, false)
 
-	file, err = os.Stat("../test/output.json")
+	_, err = os.Stat("../test/output.json")
 	if err != nil && !os.IsNotExist(err) {
 		t.Error("File was not moved")
 	}

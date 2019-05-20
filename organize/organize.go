@@ -42,23 +42,23 @@ func CreateFolder(path string) bool {
 	return true
 }
 
-func CompareFiles(path string, file PutIoFiles) int {
+func CompareFiles(path string, file PutIoFiles) bool {
 	offlineFile, err := os.Open(path)
 	if err != nil {
 		utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
-		return -1
+		return false
 	}
 	hash := crc32.NewIEEE()
 	//Copy the file in the interface
 	if _, err := io.Copy(hash, offlineFile); err != nil {
 		utils.Error.Fatalln("Error while copying file for CRC : ", file.Name, "\tError: ", err)
-		return -1
+		return false
 	}
 
 	err = offlineFile.Close()
 	if err != nil {
 		utils.Error.Fatalln("Error while closing file: ", file.Name, "\tError: ", err)
-		return -1
+		return false
 	}
 	//Generate the hash
 	hashInBytes := hash.Sum32()
@@ -69,34 +69,43 @@ func CompareFiles(path string, file PutIoFiles) int {
 	fileCrc, err := strconv.ParseInt(file.CRC32, 16, 64)
 	if err != nil {
 		utils.Error.Fatalln("Error while converting CRC from Putio: ", err)
-		return -1
+		return false
 	}
 	utils.Info.Println("File: ", file.Name, "\tFolder: ", file.Folder)
 	if fileCrc != crc {
 		utils.Warning.Println("CRC values are different", "\nOnline CRC: ", strconv.FormatInt(fileCrc, 16), "\nOffline CRC: ", strconv.FormatInt(crc, 16))
 
 		stats, _ := os.Stat(path)
-		if stats.Size() != file.Size {
-			utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
-			err := os.Remove(path)
-			if err != nil {
-				utils.Error.Fatalln("Error while removing offline file")
-			}
-			utils.Warning.Print("Offline File removed")
-			return -1
-		}
-		return 1
+		RemoveOfflineFile(path, stats, file)
+		return false
 	}
-	return 0
+	return true
+}
+
+func RemoveOfflineFile(path string, stats os.FileInfo, file PutIoFiles) bool {
+	if stats.Size() != file.Size {
+		utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
+	}
+
+	if stats.Size() == 0 {
+		utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file")
+		err := os.Remove(path)
+		if err != nil {
+			utils.Error.Fatalln("Error while removing offline file")
+		}
+		utils.Warning.Print("Offline File removed")
+		return false
+	}
+	return true
 }
 
 func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool) {
 	completeFilepath := foldername + file.Name()
 	completeFolderpath := foldername + putFile.Folder
 	compare := CompareFiles(completeFilepath, putFile)
-	if compare != -1 {
+	if compare {
 		CreateFolder(completeFolderpath)
-		if compare == 0 && removeFile {
+		if removeFile {
 			RemoveOnlineFile(conf, putFile)
 		}
 
