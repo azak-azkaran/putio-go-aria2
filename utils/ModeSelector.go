@@ -1,49 +1,86 @@
 package utils
 
 import (
-	"bufio"
 	"errors"
+	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
-func GetArguments() (string, string, string, error) {
-	var configfile string
-	var mode string
-	argsWithProg := os.Args
-	i := len(argsWithProg)
+type Configuration struct {
+	Oauthtoken string
+	Foldername string
+	Mode       string
+	Filter     string
+	Url        string
+}
 
-	switch i {
-	case 2:
-		configfile = argsWithProg[1]
-		Info.Println("Mode not select Download(d) or Organize(o)")
-		reader := bufio.NewReader(os.Stdin)
-		mode, err := reader.ReadString('\n')
+const (
+	ERROR_URL_MISSING        = "Error: Missing url in config file or ARIA2_ADDRESS is not set"
+	ERROR_MODE_MISSING       = "Error: Missing mode in config file or ARIA2_MODE is not set"
+	ERROR_TOKEN_MISSING      = "Error: Missing oauth token in config file or ARIA2_TOKEN is not set"
+	ERROR_FOLDERNAME_MISSING = "Error: Missing foldername in config file or ARIA2_FOLDERNAME is not set"
+	ERROR_WRONG_MODE         = "Error: Wrong mode was used, vaild modes: download,organize,d,o"
+)
+
+func GetArguments(filename string) (*Configuration, error) {
+	viper.SetConfigName(filename)
+	viper.SetEnvPrefix("aria2")
+	viper.BindEnv("address")
+	viper.BindEnv("oauth_token")
+	viper.BindEnv("foldername")
+	viper.BindEnv("mode")
+	viper.BindEnv("filter")
+
+	if _, err := os.Stat("config.yml"); err == nil {
+		err := viper.ReadInConfig()
 		if err != nil {
-			Error.Fatalln("Error while reading Input")
-			return "", "", "", errors.New("error while reading")
+			return nil, err
 		}
-
-		Info.Println("reading config file: ", configfile)
-		Info.Println("Starting with Mode: ", mode)
-		return configfile, mode, "", nil
-	case 3:
-		configfile = argsWithProg[1]
-		mode = argsWithProg[2]
-
-		Info.Println("reading config file: ", configfile)
-		Info.Println("Starting with Mode: ", mode)
-		return configfile, mode, "", nil
-	case 4:
-		configfile = argsWithProg[1]
-		mode = argsWithProg[2]
-		filter := argsWithProg[3]
-		Info.Println("reading config file: ", configfile)
-		Info.Println("Starting with Mode: ", mode)
-
-		return configfile, mode, filter, nil
-
-	default:
-		Error.Fatalln("script was used wrong:\n putio-go-aria2 oauth.secret\nputio-go-aria2 oauth.secret filter")
-		return "", "", "", errors.New("wrong usage")
 	}
+
+	var config Configuration
+
+	if viper.InConfig("address") || viper.IsSet("address") {
+		config.Url = viper.GetString("address")
+	} else {
+		Error.Fatalln(ERROR_URL_MISSING)
+		return nil, errors.New(ERROR_URL_MISSING)
+	}
+
+	if viper.InConfig("mode") || viper.IsSet("mode") {
+		modeString := viper.GetString("mode")
+		if strings.TrimSpace(modeString) == "download" || strings.TrimSpace(modeString) == "d" {
+			config.Mode = "d"
+		} else if strings.TrimSpace(modeString) == "organize" || strings.TrimSpace(modeString) == "o" {
+			config.Mode = "o"
+		} else {
+			Error.Fatalln(ERROR_WRONG_MODE)
+			return nil, errors.New(ERROR_WRONG_MODE)
+		}
+	} else {
+		Error.Fatalln(ERROR_MODE_MISSING)
+		return nil, errors.New(ERROR_MODE_MISSING)
+	}
+
+	if viper.InConfig("oauth_token") || viper.IsSet("oauth_token") {
+		config.Oauthtoken = viper.GetString("oauth_token")
+	} else {
+		Error.Fatalln(ERROR_TOKEN_MISSING)
+		return nil, errors.New(ERROR_TOKEN_MISSING)
+	}
+
+	if config.Mode == "o" {
+		if viper.InConfig("foldername") || viper.IsSet("foldername") {
+			config.Foldername = viper.GetString("foldername")
+		} else {
+			Error.Fatalln(ERROR_FOLDERNAME_MISSING)
+			return nil, errors.New(ERROR_FOLDERNAME_MISSING)
+		}
+	}
+
+	if viper.InConfig("filter") || viper.IsSet("filter") {
+		config.Foldername = viper.GetString("filter")
+	}
+	return &config, nil
 }

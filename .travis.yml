@@ -11,10 +11,18 @@ go:
   - tip
 before_install:
   - sudo apt-get update
-  - sudo apt-get install findutils
-before_script:
-  - go list -f '{{if len .TestGoFiles}}"go test -coverprofile={{.Dir}}/cover.out {{.ImportPath}}"{{end}}' ./... | xargs -L 1 sh -c
-  - go list -f '{{if len .TestGoFiles}}"go test -json > {{.Dir}}/report.json {{.ImportPath}}"{{end}}' ./... | xargs -L 1 sh -c
 script:
+  # main folder
+  - go test -coverprofile=cover.out
+  - go test -json > report.json
+  # downloader folder
+  - go test github.com/azak-azkaran/putio-go-aria2/aria2downloader/ -coverprofile=./aria2downloader/cover.out
+  - go test github.com/azak-azkaran/putio-go-aria2/aria2downloader/ -json > ./aria2downloader/report.json
+  # organizer folder
+  - go test github.com/azak-azkaran/putio-go-aria2/organize/ -coverprofile=./organize/cover.out
+  - go test github.com/azak-azkaran/putio-go-aria2/organize/ -json > ./organize/report.json
+  # utils folder
+  - go test github.com/azak-azkaran/putio-go-aria2/utils/ -coverprofile=./utils/cover.out
+  - go test github.com/azak-azkaran/putio-go-aria2/utils/ -json > ./utils/report.json
   # other script steps might be done before running the actual analysis
   - sonar-scanner

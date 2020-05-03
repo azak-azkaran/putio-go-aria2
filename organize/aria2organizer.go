@@ -1,9 +1,7 @@
 package organize
 
 import (
-	"github.com/azak-azkaran/putio-go-aria2/utils"
 	cmap "github.com/orcaman/concurrent-map"
-	"os"
 )
 
 func Run(configfile string, foldername string) {
@@ -16,14 +14,4 @@ func Run(configfile string, foldername string) {
 		foldername = "~/Downloads"
 	}
 	GoOrganizeFolder(foldername, folders, conf)
-}
-
-func _() {
-	utils.Init(os.Stdout, os.Stdout, os.Stderr)
-
-	configfile, _, foldername, err := utils.GetArguments()
-	if err != nil {
-		panic(err)
-	}
-	Run(configfile, foldername)
 }

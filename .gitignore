@@ -13,4 +13,5 @@
 
 # secrets file
 secret.conf
+secret.yml
 testfolder

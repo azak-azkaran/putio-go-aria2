@@ -5,22 +5,21 @@ import (
 	"github.com/azak-azkaran/putio-go-aria2/organize"
 	util "github.com/azak-azkaran/putio-go-aria2/utils"
 	"os"
-	"strings"
 )
 
 func main() {
 	util.Init(os.Stdout, os.Stdout, os.Stderr)
 
-	configfile, mode, add, err := util.GetArguments()
+	config, err := util.GetArguments("config.yml")
 	if err != nil {
 		panic(err)
 	}
 
-	if strings.TrimSpace(mode) == "d" || strings.TrimSpace(mode) == "downloader" {
-		aria2downloader.Run(configfile, add)
+	if config.Mode == "d" {
+		aria2downloader.Run(config.Oauthtoken, config.Filter, config.Url)
 
-	} else if strings.TrimSpace(mode) == "o" || strings.TrimSpace(mode) == "organize" {
-		organize.Run(configfile, add)
+	} else if config.Mode == "o" {
+		organize.Run(config.Oauthtoken, config.Foldername)
 
 	} else {
 		panic("mode not detected")
