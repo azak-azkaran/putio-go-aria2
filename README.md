@@ -1,5 +1,5 @@
 # putio-go-aria2
-[![Build Status](https://travis-ci.org/azak-azkaran/agent.svg?branch=master)](https://travis-ci.org/azak-azkaran/agent)
+[![Build Status](https://travis-ci.org/azak-azkaran/putio-go-aria2.svg?branch=master)](https://travis-ci.org/azak-azkaran/putio-go-aria2)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=azak-azkaran_putio-go-aria2&metric=alert_status)](https://sonarcloud.io/dashboard?id=azak-azkaran_putio-go-aria2)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=azak-azkaran_putio-go-aria2&metric=coverage)](https://sonarcloud.io/dashboard?id=azak-azkaran_putio-go-aria2)
 

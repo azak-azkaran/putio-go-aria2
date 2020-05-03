@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ARIA2_ADDRESS = "127.0.0.1:6800"
+	ARIA2_ADDRESS = "http://127.0.0.1:6800/jsonrpc"
 	ARIA2_MODE    = "download"
 	ARIA2_TOKEN   = "supersecrettoken"
 )
@@ -16,7 +16,7 @@ const (
 func TestEnvironmentVariables(t *testing.T) {
 	Init(os.Stdout, os.Stdout, os.Stdout)
 
-	os.Setenv("ARIA2_ADDRESS", ARIA2_ADDRESS)
+	os.Setenv("ARIA2_ADDRESS", "127.0.0.1:6800")
 	os.Setenv("ARIA2_MODE", ARIA2_MODE)
 	os.Setenv("ARIA2_OAUTH_TOKEN", ARIA2_TOKEN)
 
