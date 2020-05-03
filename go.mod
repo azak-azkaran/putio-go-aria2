@@ -9,6 +9,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.0 // indirect
 	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6
 	github.com/pelletier/go-toml v1.7.0 // indirect
+	github.com/putdotio/go-putio v1.2.0
 	github.com/putdotio/go-putio/putio v0.0.0-20200123120452-16d982cac2b8
 	github.com/qri-io/jsonschema v0.1.1
 	github.com/spf13/afero v1.2.2 // indirect

@@ -25,6 +25,7 @@ const (
 
 func GetArguments(filename string) (*Configuration, error) {
 	viper.SetConfigName(filename)
+	viper.AddConfigPath(".")
 	viper.SetEnvPrefix("aria2")
 	viper.BindEnv("address")
 	viper.BindEnv("oauth_token")
@@ -32,7 +33,8 @@ func GetArguments(filename string) (*Configuration, error) {
 	viper.BindEnv("mode")
 	viper.BindEnv("filter")
 
-	if _, err := os.Stat("config.yml"); err == nil {
+	if _, err := os.Stat("./config.yml"); err == nil {
+		Info.Println("Counfigfile found")
 		err := viper.ReadInConfig()
 		if err != nil {
 			return nil, err
@@ -42,7 +44,7 @@ func GetArguments(filename string) (*Configuration, error) {
 	var config Configuration
 
 	if viper.InConfig("address") || viper.IsSet("address") {
-		config.Url = viper.GetString("address")
+		config.Url = "http://" + viper.GetString("address") + "/jsonrpc"
 	} else {
 		Error.Fatalln(ERROR_URL_MISSING)
 		return nil, errors.New(ERROR_URL_MISSING)

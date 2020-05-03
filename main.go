@@ -10,7 +10,7 @@ import (
 func main() {
 	util.Init(os.Stdout, os.Stdout, os.Stderr)
 
-	config, err := util.GetArguments("config.yml")
+	config, err := util.GetArguments("config")
 	if err != nil {
 		panic(err)
 	}

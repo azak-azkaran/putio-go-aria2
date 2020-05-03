@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/orcaman/concurrent-map"
-	"github.com/putdotio/go-putio/putio"
+	"github.com/putdotio/go-putio"
 	"golang.org/x/oauth2"
 	"net/http"
 )
