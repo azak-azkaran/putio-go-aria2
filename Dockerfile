@@ -20,4 +20,4 @@ FROM alpine:latest
 ENV ARIA2_ADDRESS="localhost:6800"
 WORKDIR /app/
 COPY --from=builder /go/bin/ ./
-CMD ["putio-go-aria2"]
+CMD ["./putio-go-aria2"]

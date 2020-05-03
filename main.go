@@ -24,4 +24,5 @@ func main() {
 	} else {
 		panic("mode not detected")
 	}
+	os.Exit(0)
 }
