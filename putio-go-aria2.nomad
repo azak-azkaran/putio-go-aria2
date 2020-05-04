@@ -1,22 +1,30 @@
-job "putio-go-aria2" {
+job "putio-download" {
   datacenters = [ "dc1" ]
-  group "download" {
+  type = "batch"
+  periodic {
+    cron = "@hourly"
+    prohibit_overlap = true
+  }
+  group "putio" {
     restart {
       attempts = 0
-    }
-    reschedule {
-      interval       = "1h"
-      delay          = "30s"
-      delay_function = "exponential"
-      max_delay      = "120s"
-      unlimited      = false
     }
     task "download" {
       driver = "docker"
       config {
         image = "azakazkaran/putio-go-aria2"
         volumes = [
-          "/home/azak/putio-go-aria2.yml:/app/config.yml"
+          "/home/azak/apps/nomad_0.11.1_linux_amd64/putio-download/download.yml:/app/config.yml"
+        ]
+      }
+    }
+    task "organize"{
+      driver = "docker"
+      config {
+        image = "azakazkaran/putio-go-aria2"
+        volumes = [
+          "/home/azak/apps/nomad_0.11.1_linux_amd64/putio-download/organize.yml:/app/config.yml",
+          "/mnt/data/unsorted:/mnt/data/unsorted"
         ]
       }
     }

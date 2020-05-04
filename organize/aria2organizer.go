@@ -4,11 +4,11 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 )
 
-func Run(configfile string, foldername string) {
+func Run(oauthToken string, foldername string) {
 	var conf Configuration
 	folders := cmap.New()
 
-	conf = CreateConfiguration(Read(configfile), "")
+	conf = CreateConfiguration(oauthToken, "")
 	GetFolderInformation(conf, "", 0, folders)
 	if foldername == "" {
 		foldername = "~/Downloads"
