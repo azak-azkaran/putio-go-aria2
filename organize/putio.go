@@ -31,7 +31,7 @@ func CreateConfiguration(oauthToken string, filter string) Configuration {
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: conf.oauthToken})
 		conf.oauthClient = oauth2.NewClient(context.TODO(), tokenSource)
 		conf.client = putio.NewClient(conf.oauthClient)
-		utils.Info.Println("Using oauth Token: ", conf.oauthToken)
+		//utils.Info.Println("Using oauth Token: ", conf.oauthToken)
 	} else {
 		utils.Error.Fatalln("No Token found")
 		panic("No Token found")

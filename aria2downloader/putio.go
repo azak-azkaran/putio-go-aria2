@@ -2,14 +2,16 @@ package aria2downloader
 
 import (
 	"context"
-	"github.com/azak-azkaran/putio-go-aria2/utils"
 	"strconv"
 	"strings"
 
-	"github.com/orcaman/concurrent-map"
+	"github.com/azak-azkaran/putio-go-aria2/utils"
+
+	"net/http"
+
+	cmap "github.com/orcaman/concurrent-map"
 	"github.com/putdotio/go-putio"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 type Configuration struct {
@@ -26,7 +28,7 @@ func CreateConfiguration(oauthToken string, filter string) Configuration {
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: conf.oauthToken})
 		conf.oauthClient = oauth2.NewClient(context.TODO(), tokenSource)
 		conf.client = putio.NewClient(conf.oauthClient)
-		utils.Info.Println("Using oauth Token: ", conf.oauthToken)
+		//utils.Info.Println("Using oauth Token: ", conf.oauthToken)
 	} else {
 		utils.Error.Fatalln("No Token found")
 		panic("No Token found")
