@@ -16,4 +16,5 @@ putio-go-aria2
 secret.conf
 secret.yml
 config.yml
-testfolder
+testfolder/output.json
+
