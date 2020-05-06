@@ -99,7 +99,8 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 	//}
 
 	//if stats.Size() == 0 {
-	utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file")
+	utils.Warning.Println("Trying to Remove: ", path)
+	utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file ")
 	err := os.Remove(path)
 	if err != nil {
 		utils.Error.Fatalln("Error while removing offline file")
