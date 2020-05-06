@@ -2,15 +2,18 @@ package organize
 
 import (
 	"bufio"
-	"github.com/azak-azkaran/putio-go-aria2/utils"
-	cmap "github.com/orcaman/concurrent-map"
 	"hash/crc32"
 	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/azak-azkaran/putio-go-aria2/utils"
+	cmap "github.com/orcaman/concurrent-map"
 )
+
+var markedFiles cmap.ConcurrentMap
 
 func Read(filename string) string {
 	oauthToken := ""
@@ -43,59 +46,68 @@ func CreateFolder(path string) bool {
 }
 
 func CompareFiles(path string, file PutIoFiles) bool {
-	offlineFile, err := os.Open(path)
-	if err != nil {
-		utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
-		return false
-	}
-	hash := crc32.NewIEEE()
-	//Copy the file in the interface
-	if _, err := io.Copy(hash, offlineFile); err != nil {
-		utils.Error.Fatalln("Error while copying file for CRC : ", file.Name, "\tError: ", err)
-		return false
-	}
-
-	err = offlineFile.Close()
-	if err != nil {
-		utils.Error.Fatalln("Error while closing file: ", file.Name, "\tError: ", err)
-		return false
-	}
-	//Generate the hash
-	hashInBytes := hash.Sum32()
-
-	//Encode the hash to a string
-	crc := int64(hashInBytes)
-
 	fileCrc, err := strconv.ParseInt(file.CRC32, 16, 64)
 	if err != nil {
 		utils.Error.Fatalln("Error while converting CRC from Putio: ", err)
 		return false
 	}
+	var crc int64
+	if markedFiles.Has(path) {
+		val, b := markedFiles.Get(path)
+		if b {
+			crc = val.(int64)
+		}
+	} else {
+		offlineFile, err := os.Open(path)
+		if err != nil {
+			utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
+			return false
+		}
+		hash := crc32.NewIEEE()
+		//Copy the file in the interface
+		if _, err := io.Copy(hash, offlineFile); err != nil {
+			utils.Error.Fatalln("Error while copying file for CRC : ", file.Name, "\tError: ", err)
+			return false
+		}
+
+		err = offlineFile.Close()
+		if err != nil {
+			utils.Error.Fatalln("Error while closing file: ", file.Name, "\tError: ", err)
+			return false
+		}
+		//Generate the hash
+		hashInBytes := hash.Sum32()
+
+		//Encode the hash to a string
+		crc = int64(hashInBytes)
+	}
 	utils.Info.Println("File: ", file.Name, "\tFolder: ", file.Folder)
 	if fileCrc != crc {
 		utils.Warning.Println("CRC values are different", "\nOnline CRC: ", strconv.FormatInt(fileCrc, 16), "\nOffline CRC: ", strconv.FormatInt(crc, 16))
-
-		stats, _ := os.Stat(path)
-		RemoveOfflineFile(path, stats, file)
+		markedFiles.SetIfAbsent(path, crc)
 		return false
+	}
+	if markedFiles.Has(path) {
+		markedFiles.Remove(path)
 	}
 	return true
 }
 
-func RemoveOfflineFile(path string, stats os.FileInfo, file PutIoFiles) bool {
-	if stats.Size() != file.Size {
-		utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
-	}
+func RemoveOfflineFile(path string, stats os.FileInfo) bool {
+	//if stats.Size() != file.Size {
+	//	utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
+	//}
 
-	if stats.Size() == 0 {
-		utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file")
-		err := os.Remove(path)
-		if err != nil {
-			utils.Error.Fatalln("Error while removing offline file")
-		}
-		utils.Warning.Print("Offline File removed")
+	//if stats.Size() == 0 {
+	utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file")
+	err := os.Remove(path)
+	if err != nil {
+		utils.Error.Fatalln("Error while removing offline file")
 		return false
 	}
+	utils.Warning.Print("Offline File removed")
+	//return false
+	//}
 	return true
 }
 
@@ -127,6 +139,7 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 }
 
 func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configuration) []os.FileInfo {
+	markedFiles = cmap.New()
 	files, err := ioutil.ReadDir(foldername)
 	if err != nil {
 		utils.Error.Fatalln(err)
@@ -144,6 +157,11 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 			v := value.(PutIoFiles)
 			HandleFile(v, file, foldername, conf, true)
 		}
+	}
+	utils.Info.Println("Removing corrupted files")
+	for _, path := range markedFiles.Keys() {
+		stats, _ := os.Stat(path)
+		RemoveOfflineFile(path, stats)
 	}
 	return files
 }

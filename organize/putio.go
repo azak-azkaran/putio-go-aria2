@@ -2,11 +2,12 @@ package organize
 
 import (
 	"context"
-	"github.com/azak-azkaran/putio-go-aria2/utils"
-	"github.com/orcaman/concurrent-map"
-	"github.com/putdotio/go-putio/putio"
-	"golang.org/x/oauth2"
 	"net/http"
+
+	"github.com/azak-azkaran/putio-go-aria2/utils"
+	cmap "github.com/orcaman/concurrent-map"
+	"github.com/putdotio/go-putio"
+	"golang.org/x/oauth2"
 )
 
 type PutIoFiles struct {

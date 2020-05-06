@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+putio-go-aria2
 
 # Test binary, build with `go test -c`
 *.test

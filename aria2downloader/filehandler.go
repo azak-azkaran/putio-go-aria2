@@ -3,10 +3,11 @@ package aria2downloader
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/azak-azkaran/putio-go-aria2/utils"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/azak-azkaran/putio-go-aria2/utils"
 )
 
 func Read(filename string) string {
@@ -49,7 +50,7 @@ func Write(folder string, answer Answer) (string, error) {
 	return filename.String(), err
 }
 
-func AddUriToAria(respond chan<- Answer, request AddUriRequest, answer Answer, url string) {
+func AddUriToAria(request AddUriRequest, answer Answer, url string) {
 	b, err := json.Marshal(request)
 	if err != nil {
 		utils.Error.Fatalln("Error while Marshaling the Request: ", err)
@@ -61,12 +62,12 @@ func AddUriToAria(respond chan<- Answer, request AddUriRequest, answer Answer, u
 		return
 	} else {
 		answer.AriaID = result
-		filename, err := Write("jsons", answer)
-		if err != nil {
-			utils.Warning.Println("File for: ", answer.Name, "\tFilename: ", filename)
-		} else {
-			utils.Info.Println(answer.Name, " send to aria and written to information written to file: ", filename)
-		}
+		utils.Info.Println("Successfully sent to aria: ", answer.Name, " - ", answer.AriaID)
+		//filename, err := Write("jsons", answer)
+		//if err != nil {
+		//	utils.Warning.Println("File for: ", answer.Name, "\tFilename: ", filename)
+		//} else {
+		//	utils.Info.Println(answer.Name, " send to aria and written to information written to file: ", filename)
+		//}
 	}
-	respond <- answer
 }
