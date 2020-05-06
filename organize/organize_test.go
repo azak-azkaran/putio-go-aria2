@@ -1,13 +1,14 @@
 package organize
 
 import (
-	"github.com/azak-azkaran/putio-go-aria2/utils"
-	"github.com/orcaman/concurrent-map"
 	"hash/crc32"
 	"io"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/azak-azkaran/putio-go-aria2/utils"
+	cmap "github.com/orcaman/concurrent-map"
 )
 
 func TestCreateFolder(t *testing.T) {
@@ -34,6 +35,7 @@ func TestCreateFolder(t *testing.T) {
 func TestCompareFiles(t *testing.T) {
 	utils.Init(os.Stdout, os.Stdout, os.Stdout)
 
+	markedFiles = cmap.New()
 	err := Copy("../testdata/output.json", "../output.json")
 	if err != nil {
 		t.Error("testdata could not be copied")
