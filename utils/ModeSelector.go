@@ -2,9 +2,11 @@ package utils
 
 import (
 	"errors"
-	"github.com/spf13/viper"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type Configuration struct {
@@ -24,22 +26,24 @@ const (
 )
 
 func GetArguments(filename string) (*Configuration, error) {
-	viper.SetConfigName(filename)
-	viper.AddConfigPath(".")
-	viper.SetEnvPrefix("aria2")
-	viper.BindEnv("address")
-	viper.BindEnv("oauth_token")
-	viper.BindEnv("foldername")
-	viper.BindEnv("mode")
-	viper.BindEnv("filter")
+	if _, err := os.Stat(filename); err == nil {
 
-	if _, err := os.Stat("./config.yml"); err == nil {
+		name := strings.Split(filepath.Base(filename), ".")[0]
+		viper.SetConfigName(name)
+		viper.AddConfigPath(filepath.Dir(filename))
 		Info.Println("Counfigfile found")
 		err := viper.ReadInConfig()
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	viper.SetEnvPrefix("aria2")
+	viper.BindEnv("address")
+	viper.BindEnv("oauth_token")
+	viper.BindEnv("foldername")
+	viper.BindEnv("mode")
+	viper.BindEnv("filter")
 
 	var config Configuration
 

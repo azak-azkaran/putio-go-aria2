@@ -6,9 +6,7 @@ import (
 
 func Run(oauthToken string, filter string, url string) {
 	answers := cmap.New()
-	var conf Configuration
-
-	conf = CreateConfiguration(oauthToken, filter)
+	conf := CreateConfiguration(oauthToken, filter)
 
 	AddLink(conf, 0, answers)
 	for item := range answers.IterBuffered() {
