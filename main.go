@@ -1,16 +1,17 @@
 package main
 
 import (
+	"os"
+
 	"github.com/azak-azkaran/putio-go-aria2/aria2downloader"
 	"github.com/azak-azkaran/putio-go-aria2/organize"
 	util "github.com/azak-azkaran/putio-go-aria2/utils"
-	"os"
 )
 
 func main() {
 	util.Init(os.Stdout, os.Stdout, os.Stderr)
 
-	config, err := util.GetArguments("config")
+	config, err := util.GetArguments("./config.yml")
 	if err != nil {
 		panic(err)
 	}
