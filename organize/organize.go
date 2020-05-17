@@ -113,6 +113,7 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 }
 
 func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool) {
+	utils.Info.Println("Handling File: ", file.Name())
 	completeFilepath := foldername + file.Name()
 	completeFolderpath := foldername + putFile.Folder
 	compare := CompareFiles(completeFilepath, putFile)
@@ -153,8 +154,14 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 
 	utils.Info.Println("Checking Files on Disk")
 	for _, file := range files {
-		value, ok := folders.Get(file.Name())
-		if !file.IsDir() && ok {
+		value, ok := folders.Get(foldername + file.Name())
+		fi, err := os.Lstat(foldername + file.Name())
+		utils.Info.Println("Checking File: ", foldername+file.Name())
+		if err != nil {
+			utils.Error.Println("Error for Lstat: ", err)
+			ok = false
+		}
+		if !file.IsDir() && ok && fi.Mode()&os.ModeSymlink == 0 {
 			v := value.(PutIoFiles)
 			HandleFile(v, file, foldername, conf, true)
 		}

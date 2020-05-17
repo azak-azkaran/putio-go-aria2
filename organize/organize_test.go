@@ -9,6 +9,7 @@ import (
 
 	"github.com/azak-azkaran/putio-go-aria2/utils"
 	cmap "github.com/orcaman/concurrent-map"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateFolder(t *testing.T) {
@@ -16,35 +17,26 @@ func TestCreateFolder(t *testing.T) {
 
 	path := "../test"
 	_, err := os.Stat(path)
-	if err != nil && !os.IsNotExist(err) {
-		t.Error("Folder is already there")
-	}
+	assert.Error(t, err)
+	assert.True(t, os.IsNotExist(err))
+	assert.True(t, CreateFolder(path))
 
-	if !CreateFolder(path) {
-		t.Error("Folder could not be created")
-	}
 	_, err = os.Stat(path)
-	if err != nil && os.IsNotExist(err) {
-		t.Error("Folder is not created")
-	}
+	assert.NoError(t, err)
+	assert.False(t, os.IsNotExist(err))
+
 	err = os.Remove(path)
-	if err != nil {
-		t.Error("Folder could not be removed")
-	}
+	assert.NoError(t, err)
 }
 func TestCompareFiles(t *testing.T) {
 	utils.Init(os.Stdout, os.Stdout, os.Stdout)
 
 	markedFiles = cmap.New()
 	err := Copy("../testdata/output.json", "../output.json")
-	if err != nil {
-		t.Error("testdata could not be copied")
-	}
+	assert.NoError(t, err)
 
 	file, err := os.Stat("../testdata/output.json")
-	if err != nil {
-		t.Error("testdata could not be copied")
-	}
+	assert.NoError(t, err)
 
 	var putio PutIoFiles
 	putio.Folder = "../test/blub"
@@ -54,25 +46,18 @@ func TestCompareFiles(t *testing.T) {
 	putio.Size = file.Size()
 
 	output := CompareFiles("../output.json", putio)
-	if !output {
-		t.Error("Compared failed")
-	}
+	assert.True(t, output)
+
 	putio.CRC32 = "cca7c6b3"
 	output = CompareFiles("../output.json", putio)
-	if output {
-		t.Error("Compared failed")
-	}
+	assert.False(t, output)
 
 	putio.CRC32 = "00188c02"
 	output = CompareFiles("../output.json", putio)
-	if output {
-		t.Error("Compared failed even with padding")
-	}
+	assert.False(t, output)
 
 	err = os.Remove("../output.json")
-	if err != nil {
-		t.Error("File could not be removed")
-	}
+	assert.NoError(t, err)
 }
 
 func TestOrganizeFolder(t *testing.T) {
@@ -82,30 +67,31 @@ func TestOrganizeFolder(t *testing.T) {
 
 	path := "../testdata"
 	_, err := os.Stat(path)
-	if err != nil && os.IsNotExist(err) {
-		t.Error("Folder is already there")
-	}
+	assert.NoError(t, err)
+	assert.False(t, os.IsNotExist(err))
+
 	files := GoOrganizeFolder(path, folders, conf)
-	if len(files) == 0 {
-		t.Error("No files found")
+	assert.NotZero(t, files)
+	for k, v := range files {
+		utils.Info.Println("file:", k, "\t", v.Name())
+		utils.Info.Println("Mode: ", v.Mode()&os.ModeSymlink == 0)
 	}
+
 }
 
 func TestHandleFile(t *testing.T) {
 	utils.Init(os.Stdout, os.Stdout, os.Stdout)
 
+	markedFiles = cmap.New()
 	var conf Configuration
 	var putio PutIoFiles
 
 	_, err := os.Stat("../test/output.json")
-	if err != nil && !os.IsNotExist(err) {
-		t.Error("File already moved")
-	}
+	assert.Error(t, err)
+	assert.True(t, os.IsNotExist(err))
 
 	file, err := os.Stat("../testdata/output.json")
-	if err != nil {
-		t.Error("testdata not available")
-	}
+	assert.NoError(t, err)
 
 	putio.Folder = "test/"
 	putio.Name = "output.json"
@@ -113,31 +99,23 @@ func TestHandleFile(t *testing.T) {
 	putio.CRC32, _ = CreateCrc32("../testdata/output.json")
 	putio.Size = file.Size()
 	err = Copy("../testdata/output.json", "../output.json")
-	if err != nil {
-		t.Error("testdata could not be copied")
-	}
+	assert.NoError(t, err)
 
 	file, err = os.Stat("../output.json")
-	if err != nil && os.IsNotExist(err) {
-		t.Error("testdata was not copied")
-	}
+	assert.NoError(t, err)
+	assert.False(t, os.IsNotExist(err))
+
 	HandleFile(putio, file, "../", conf, false)
 
 	_, err = os.Stat("../test/output.json")
-	if err != nil && !os.IsNotExist(err) {
-		t.Error("File was not moved")
-	}
+	assert.NoError(t, err)
+	assert.False(t, os.IsNotExist(err))
 
 	err = os.Remove("../test/output.json")
-	if err != nil {
-		t.Error("Error while removing File")
-	}
+	assert.NoError(t, err)
 
 	err = os.Remove("../test")
-	if err != nil {
-		t.Error("Error while removing Folder")
-	}
-
+	assert.NoError(t, err)
 }
 
 // Copy the src file to dst. Any existing file will be overwritten and will not
