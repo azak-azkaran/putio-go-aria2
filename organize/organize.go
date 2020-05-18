@@ -154,7 +154,7 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 
 	utils.Info.Println("Checking Files on Disk")
 	for _, file := range files {
-		value, ok := folders.Get(foldername + file.Name())
+		value, ok := folders.Get(file.Name())
 		fi, err := os.Lstat(foldername + file.Name())
 		if err != nil {
 			utils.Error.Println("Error for Lstat: ", err)
