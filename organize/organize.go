@@ -37,18 +37,18 @@ func CreateFolder(path string) bool {
 		utils.Info.Println("Creating folder: ", path)
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
-			utils.Error.Fatalln("Error while creating folder", err)
+			utils.Error.Println("Error while creating folder", err)
 			return false
 		}
 		return true
 	}
-	return true
+	return false
 }
 
 func CompareFiles(path string, file PutIoFiles) bool {
 	fileCrc, err := strconv.ParseInt(file.CRC32, 16, 64)
 	if err != nil {
-		utils.Error.Fatalln("Error while converting CRC from Putio: ", err)
+		utils.Error.Println("Error while converting CRC from Putio: ", err)
 		return false
 	}
 	var crc int64
@@ -60,19 +60,19 @@ func CompareFiles(path string, file PutIoFiles) bool {
 	} else {
 		offlineFile, err := os.Open(path)
 		if err != nil {
-			utils.Error.Fatalln("Error while reading file: ", file.Name, "\tError: ", err)
+			utils.Error.Println("Error while reading file: ", file.Name, "\tError: ", err)
 			return false
 		}
 		hash := crc32.NewIEEE()
 		//Copy the file in the interface
 		if _, err := io.Copy(hash, offlineFile); err != nil {
-			utils.Error.Fatalln("Error while copying file for CRC : ", file.Name, "\tError: ", err)
+			utils.Error.Println("Error while copying file for CRC : ", file.Name, "\tError: ", err)
 			return false
 		}
 
 		err = offlineFile.Close()
 		if err != nil {
-			utils.Error.Fatalln("Error while closing file: ", file.Name, "\tError: ", err)
+			utils.Error.Println("Error while closing file: ", file.Name, "\tError: ", err)
 			return false
 		}
 		//Generate the hash
@@ -103,7 +103,7 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 	utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file ")
 	err := os.Remove(path)
 	if err != nil {
-		utils.Error.Fatalln("Error while removing offline file")
+		utils.Error.Println("Error while removing offline file")
 		return false
 	}
 	utils.Warning.Print("Offline File removed")
@@ -125,19 +125,19 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 
 		newfolder, err := os.Stat(completeFolderpath)
 		if err != nil {
-			utils.Error.Fatalln("Error Folder missing will not move file: ", err)
+			utils.Error.Println("Error Folder missing will not move file: ", err)
 			return
 		} else {
 			if len(putFile.Folder) != 0 && newfolder.IsDir() {
 				utils.Info.Println("Moving to: ", completeFolderpath+"/"+putFile.Name)
 				err := os.Rename(completeFilepath, completeFolderpath+"/"+putFile.Name)
 				if err != nil {
-					utils.Error.Fatalln("Error while moving File: ", putFile.Name, "\n", err)
+					utils.Error.Println("Error while moving File: ", putFile.Name, "\n", err)
 					return
 				}
 				err = os.Chown(completeFolderpath+"/"+putFile.Name, 1000, 1000)
 				if err != nil {
-					utils.Error.Fatalln("Error while changing Owner: ", putFile.Name, "\n", err)
+					utils.Error.Println("Error while changing Owner: ", putFile.Name, "\n", err)
 					return
 				}
 			}
