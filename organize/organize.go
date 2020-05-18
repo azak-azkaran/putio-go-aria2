@@ -135,6 +135,11 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 					utils.Error.Fatalln("Error while moving File: ", putFile.Name, "\n", err)
 					return
 				}
+				err = os.Chown(completeFolderpath+"/"+putFile.Name, 1000, 1000)
+				if err != nil {
+					utils.Error.Fatalln("Error while changing Owner: ", putFile.Name, "\n", err)
+					return
+				}
 			}
 		}
 	}
