@@ -40,6 +40,7 @@ func CreateFolder(path string) bool {
 			utils.Error.Println("Error while creating folder", err)
 			return false
 		}
+		SetOwner(1000, 1000, path)
 		return true
 	}
 	return false
@@ -112,6 +113,14 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 	return true
 }
 
+func SetOwner(pid int, gid int, path string) {
+	err := os.Chown(path, pid, gid)
+	if err != nil {
+		utils.Error.Println("Error while changing Owner: ", path, "\n", err)
+		return
+	}
+}
+
 func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool, moveFileToFolder string) {
 	utils.Info.Println("Handling File: ", file.Name())
 	completeFilepath := foldername + file.Name()
@@ -135,11 +144,7 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 					utils.Error.Println("Error while moving File: ", putFile.Name, "\n", err)
 					return
 				}
-				err = os.Chown(completeFolderpath+"/"+putFile.Name, 1000, 1000)
-				if err != nil {
-					utils.Error.Println("Error while changing Owner: ", putFile.Name, "\n", err)
-					return
-				}
+				SetOwner(1000, 1000, completeFolderpath+"/"+putFile.Name)
 			}
 		}
 	}
