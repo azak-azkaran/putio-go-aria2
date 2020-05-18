@@ -156,11 +156,15 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 	for _, file := range files {
 		value, ok := folders.Get(foldername + file.Name())
 		fi, err := os.Lstat(foldername + file.Name())
-		utils.Info.Println("Checking File: ", foldername+file.Name())
 		if err != nil {
 			utils.Error.Println("Error for Lstat: ", err)
-			ok = false
+			break
 		}
+		utils.Info.Println("Checking File: ", foldername+file.Name(),
+			" IsDir", file.IsDir(),
+			" ok:", ok,
+			" Mode:", fi.Mode()&os.ModeSymlink == 0)
+
 		if !file.IsDir() && ok && fi.Mode()&os.ModeSymlink == 0 {
 			v := value.(PutIoFiles)
 			HandleFile(v, file, foldername, conf, true)
