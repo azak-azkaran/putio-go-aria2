@@ -112,10 +112,10 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 	return true
 }
 
-func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool) {
+func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool, moveFileToFolder string) {
 	utils.Info.Println("Handling File: ", file.Name())
 	completeFilepath := foldername + file.Name()
-	completeFolderpath := foldername + putFile.Folder
+	completeFolderpath := moveFileToFolder + putFile.Folder
 	compare := CompareFiles(completeFilepath, putFile)
 	if compare {
 		CreateFolder(completeFolderpath)
@@ -140,7 +140,7 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 	}
 }
 
-func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configuration) []os.FileInfo {
+func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Configuration, moveFileToFolder string) []os.FileInfo {
 	markedFiles = cmap.New()
 	files, err := ioutil.ReadDir(foldername)
 	if err != nil {
@@ -167,7 +167,7 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 
 		if !file.IsDir() && ok && fi.Mode()&os.ModeSymlink == 0 {
 			v := value.(PutIoFiles)
-			HandleFile(v, file, foldername, conf, true)
+			HandleFile(v, file, foldername, conf, true, moveFileToFolder)
 		}
 	}
 	utils.Info.Println("Removing corrupted files")

@@ -4,7 +4,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 )
 
-func Run(oauthToken string, foldername string) {
+func Run(oauthToken string, foldername string, moveFileToFolder string) {
 	var conf Configuration
 	folders := cmap.New()
 
@@ -13,5 +13,8 @@ func Run(oauthToken string, foldername string) {
 	if foldername == "" {
 		foldername = "~/Downloads"
 	}
-	GoOrganizeFolder(foldername, folders, conf)
+	if moveFileToFolder == "" {
+		moveFileToFolder = foldername
+	}
+	GoOrganizeFolder(foldername, folders, conf, moveFileToFolder)
 }

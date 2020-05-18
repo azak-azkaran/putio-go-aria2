@@ -70,7 +70,7 @@ func TestOrganizeFolder(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, os.IsNotExist(err))
 
-	files := GoOrganizeFolder(path, folders, conf)
+	files := GoOrganizeFolder(path, folders, conf, path)
 	assert.NotZero(t, files)
 	for k, v := range files {
 		utils.Info.Println("file:", k, "\t", v.Name())
@@ -105,7 +105,7 @@ func TestHandleFile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, os.IsNotExist(err))
 
-	HandleFile(putio, file, "../", conf, false)
+	HandleFile(putio, file, "../", conf, false, "../")
 
 	_, err = os.Stat("../test/output.json")
 	assert.NoError(t, err)

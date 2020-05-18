@@ -20,7 +20,7 @@ func main() {
 		aria2downloader.Run(config.Oauthtoken, config.Filter, config.Url)
 
 	} else if config.Mode == "o" {
-		organize.Run(config.Oauthtoken, config.Foldername)
+		organize.Run(config.Oauthtoken, config.Foldername, config.Destination)
 
 	} else {
 		panic("mode not detected")

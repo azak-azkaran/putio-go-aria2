@@ -10,11 +10,12 @@ import (
 )
 
 type Configuration struct {
-	Oauthtoken string
-	Foldername string
-	Mode       string
-	Filter     string
-	Url        string
+	Oauthtoken  string
+	Foldername  string
+	Mode        string
+	Filter      string
+	Url         string
+	Destination string
 }
 
 const (
@@ -44,6 +45,7 @@ func GetArguments(filename string) (*Configuration, error) {
 	viper.BindEnv("foldername")
 	viper.BindEnv("mode")
 	viper.BindEnv("filter")
+	viper.BindEnv("destination")
 
 	var config Configuration
 
@@ -94,6 +96,10 @@ func GetArguments(filename string) (*Configuration, error) {
 	if viper.InConfig("filter") || viper.IsSet("filter") {
 		config.Filter = viper.GetString("filter")
 		Info.Println("Filter: ", config.Filter)
+	}
+	if viper.InConfig("destination") || viper.IsSet("destination") {
+		config.Destination = viper.GetString("destination")
+		Info.Println("Destination: ", config.Destination)
 	}
 	return &config, nil
 }
