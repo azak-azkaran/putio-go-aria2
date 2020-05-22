@@ -63,11 +63,5 @@ func AddUriToAria(request AddUriRequest, answer Answer, url string) {
 	} else {
 		answer.AriaID = result
 		utils.Info.Println("Successfully sent to aria: ", answer.Name, " - ", answer.AriaID)
-		//filename, err := Write("jsons", answer)
-		//if err != nil {
-		//	utils.Warning.Println("File for: ", answer.Name, "\tFilename: ", filename)
-		//} else {
-		//	utils.Info.Println(answer.Name, " send to aria and written to information written to file: ", filename)
-		//}
 	}
 }

@@ -3,9 +3,17 @@ package aria2downloader
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/azak-azkaran/putio-go-aria2/utils"
 	"net/http"
+
+	"github.com/azak-azkaran/putio-go-aria2/utils"
 )
+
+type PurgeDownloadResult struct {
+	Jsonrpc string   `json:"jsonrpc"`
+	ID      string   `json:"id"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+}
 
 type Answer struct {
 	ID      string            `json:"id"`
@@ -52,6 +60,14 @@ func TellStatus(link string) TellStatusRequest {
 	request.ID = "qwer"
 	request.Method = "aria2.tellStatus"
 	request.Params = append(request.Params, link)
+	return request
+}
+
+func PurgeDownload() PurgeDownloadResult {
+	request := PurgeDownloadResult{}
+	request.Jsonrpc = "2.0"
+	request.ID = "qwer"
+	request.Method = "aria2.purgeDownloadResult"
 	return request
 }
 
