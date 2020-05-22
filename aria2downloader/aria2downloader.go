@@ -17,6 +17,8 @@ func Run(oauthToken string, filter string, url string) {
 		AddUriToAria(v.Request, v, url)
 	}
 
+	utils.Info.Println("Sending PurgeDownloadResult Request")
+
 	b, err := json.Marshal(PurgeDownload())
 	if err != nil {
 		utils.Error.Println("Error while Marshaling the PurgeRequest: ", err)

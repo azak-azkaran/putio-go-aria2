@@ -68,6 +68,7 @@ func PurgeDownload() PurgeDownloadResult {
 	request.Jsonrpc = "2.0"
 	request.ID = "qwer"
 	request.Method = "aria2.purgeDownloadResult"
+	request.Params = make([]string, 0)
 	return request
 }
 

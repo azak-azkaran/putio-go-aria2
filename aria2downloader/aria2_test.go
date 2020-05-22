@@ -3,76 +3,76 @@ package aria2downloader
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/qri-io/jsonschema"
 	"io/ioutil"
-	"strings"
 	"testing"
+
+	"github.com/qri-io/jsonschema"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddUri(t *testing.T) {
-
+	fmt.Println("Running TestAddUri")
 	link := "testLink"
 	request := AddURI(link)
 	b, err := json.Marshal(request)
+	require.NoError(t, err)
 
-	if err != nil {
-		t.Error(err)
-	}
-	requestString := string(b)
-
-	if !strings.Contains(requestString, "params\":[[\"testLink\"]]") {
-		fmt.Println("generated JSON\t:", requestString)
-		t.Error("Link part is not in the JSON")
-	}
-
-	if !strings.Contains(requestString, "aria2.addUri") {
-		fmt.Println("generated JSON\t:", requestString)
-		t.Error("method name not in JSON")
-	}
-
-	schemaData, err := ioutil.ReadFile("../schema/AddAriaRequest.json")
-	if err != nil {
-		t.Error(err)
-	}
-	rs := &jsonschema.RootSchema{}
-	if err := json.Unmarshal(schemaData, rs); err != nil {
-		t.Error("unmarshal schema: " + err.Error())
-	}
-	if errors, _ := rs.ValidateBytes(b); len(errors) > 0 {
-		t.Error(errors)
-	}
-}
-
-func TestTellStatus(t *testing.T) {
-	link := "testLink"
-	request := TellStatus(link)
-	b, err := json.Marshal(request)
-
-	if err != nil {
-		t.Error(err)
-	}
 	requestString := string(b)
 	fmt.Println(requestString)
 
-	if !strings.Contains(requestString, "params\":[\"testLink\"]") {
-		fmt.Println("generated JSON\t:", requestString)
-		t.Error("Link part is not in the JSON")
-	}
+	assert.Contains(t, requestString, "params\":[[\"testLink\"]]")
+	assert.Contains(t, requestString, "aria2.addUri")
 
-	if !strings.Contains(requestString, "aria2.tellStatus") {
-		fmt.Println("generated JSON\t:", requestString)
-		t.Error("method name not in JSON")
-	}
-
-	schemaData, err := ioutil.ReadFile("../schema/TellStatusRequest.json")
-	if err != nil {
-		t.Error(err)
-	}
+	schemaData, err := ioutil.ReadFile("../schema/AddAriaRequest.json")
+	assert.NoError(t, err)
 	rs := &jsonschema.RootSchema{}
-	if err := json.Unmarshal(schemaData, rs); err != nil {
-		t.Error("unmarshal schema: " + err.Error())
-	}
-	if errors, _ := rs.ValidateBytes(b); len(errors) > 0 {
-		t.Error(errors)
-	}
+	err = json.Unmarshal(schemaData, rs)
+	assert.NoError(t, err)
+	errors, _ := rs.ValidateBytes(b)
+	assert.Empty(t, errors)
+
+}
+
+func TestTellStatus(t *testing.T) {
+	fmt.Println("Running TestTellStatus")
+	link := "testLink"
+	request := TellStatus(link)
+	b, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	requestString := string(b)
+	fmt.Println(requestString)
+
+	assert.Contains(t, requestString, "params\":[\"testLink\"]")
+	assert.Contains(t, requestString, "aria2.tellStatus")
+	schemaData, err := ioutil.ReadFile("../schema/TellStatusRequest.json")
+	assert.NoError(t, err)
+
+	rs := &jsonschema.RootSchema{}
+	err = json.Unmarshal(schemaData, rs)
+	assert.NoError(t, err)
+	errors, _ := rs.ValidateBytes(b)
+	assert.Empty(t, errors)
+}
+
+func TestPurgeDownloadResult(t *testing.T) {
+	fmt.Println("Running TestPurgeDownloadResult")
+	request := PurgeDownload()
+	b, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	requestString := string(b)
+	fmt.Println(requestString)
+
+	assert.Contains(t, requestString, "params\":[]")
+	assert.Contains(t, requestString, "aria2.purgeDownloadResult")
+	schemaData, err := ioutil.ReadFile("../schema/PurgeDownload.json")
+	assert.NoError(t, err)
+
+	rs := &jsonschema.RootSchema{}
+	err = json.Unmarshal(schemaData, rs)
+	assert.NoError(t, err)
+	errors, _ := rs.ValidateBytes(b)
+	assert.Empty(t, errors)
 }
