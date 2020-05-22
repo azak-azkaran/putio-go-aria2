@@ -124,6 +124,12 @@ func SetOwner(pid int, gid int, path string) {
 func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool, moveFileToFolder string) {
 	utils.Info.Println("Handling File: ", file.Name())
 	completeFilepath := foldername + file.Name()
+
+	if _, err := os.Stat(foldername + file.Name() + ".aria2"); err == nil {
+		utils.Info.Println("Aria2 is still downloading File: ", file.Name())
+		return
+	}
+
 	completeFolderpath := moveFileToFolder + putFile.Folder
 	compare := CompareFiles(completeFilepath, putFile)
 	if compare {
