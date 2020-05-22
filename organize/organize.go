@@ -175,7 +175,7 @@ func GoOrganizeFolder(foldername string, folders cmap.ConcurrentMap, conf Config
 			" ok:", ok,
 			" Mode:", fi.Mode()&os.ModeSymlink == 0)
 
-		if !file.IsDir() && ok && fi.Mode()&os.ModeSymlink == 0 {
+		if !file.IsDir() && ok {
 			v := value.(PutIoFiles)
 			HandleFile(v, file, foldername, conf, true, moveFileToFolder)
 		}

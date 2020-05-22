@@ -17,4 +17,5 @@ secret.conf
 secret.yml
 config.yml
 testfolder/output.json
+fmtcoverage.html
 
