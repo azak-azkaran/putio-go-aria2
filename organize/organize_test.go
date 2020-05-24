@@ -93,7 +93,7 @@ func TestHandleFile(t *testing.T) {
 	file, err := os.Stat("../testdata/output.json")
 	assert.NoError(t, err)
 
-	putio.Folder = "test/"
+	putio.Folder = "test"
 	putio.Name = "output.json"
 	putio.PutIoID = 23
 	putio.CRC32, _ = CreateCrc32("../testdata/output.json")

@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -40,7 +41,6 @@ func CreateFolder(path string) bool {
 			utils.Error.Println("Error while creating folder", err)
 			return false
 		}
-		SetOwner(1000, 1000, path)
 		return true
 	}
 	return false
@@ -114,10 +114,16 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 }
 
 func SetOwner(pid int, gid int, path string) {
-	err := os.Chown(path, pid, gid)
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		utils.Info.Println("Chaning Owner of: ", path)
+		os.Chown(path, pid, gid)
+		if err != nil {
+			utils.Error.Println("Error while changing Owner: ", path, "\n", err)
+		}
+		return nil
+	})
 	if err != nil {
-		utils.Error.Println("Error while changing Owner: ", path, "\n", err)
-		return
+		utils.Error.Println("Should not happen but encountered error: ", err)
 	}
 }
 
@@ -150,7 +156,8 @@ func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Co
 					utils.Error.Println("Error while moving File: ", putFile.Name, "\n", err)
 					return
 				}
-				SetOwner(1000, 1000, completeFolderpath+"/"+putFile.Name)
+
+				SetOwner(1000, 1000, completeFolderpath)
 			}
 		}
 	}
