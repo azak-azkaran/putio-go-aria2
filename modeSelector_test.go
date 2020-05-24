@@ -20,7 +20,7 @@ func TestConfigFile(t *testing.T) {
 	utils.Init(os.Stdout, os.Stdout, os.Stdout)
 	utils.Info.Println("testing: TestConfigFile")
 
-	conf, err := GetArguments("../testdata/test_config.yml")
+	conf, err := GetArguments("testdata/test_config.yml")
 	require.NoError(t, err)
 
 	assert.NotEqual(t, conf.Url, ARIA2_ADDRESS)
