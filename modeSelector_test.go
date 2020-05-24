@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	utils "github.com/azak-azkaran/putio-go-aria2/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,8 @@ const (
 )
 
 func TestConfigFile(t *testing.T) {
-	Init(os.Stdout, os.Stdout, os.Stdout)
+	utils.Init(os.Stdout, os.Stdout, os.Stdout)
+	utils.Info.Println("testing: TestConfigFile")
 
 	conf, err := GetArguments("../testdata/test_config.yml")
 	require.NoError(t, err)
@@ -27,7 +29,8 @@ func TestConfigFile(t *testing.T) {
 	assert.EqualValues(t, conf.Oauthtoken, ARIA2_TOKEN)
 }
 func TestEnvironmentVariables(t *testing.T) {
-	Init(os.Stdout, os.Stdout, os.Stdout)
+	utils.Init(os.Stdout, os.Stdout, os.Stdout)
+	utils.Info.Println("testing: TestEnvironmentVariables")
 
 	os.Setenv("ARIA2_ADDRESS", "127.0.0.1:6800")
 	os.Setenv("ARIA2_MODE", ARIA2_MODE)
