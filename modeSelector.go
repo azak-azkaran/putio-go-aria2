@@ -1,4 +1,4 @@
-package utils
+package main
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	utils "github.com/azak-azkaran/putio-go-aria2/utils"
 	"github.com/spf13/viper"
 )
 
@@ -32,7 +33,7 @@ func GetArguments(filename string) (*Configuration, error) {
 		name := strings.Split(filepath.Base(filename), ".")[0]
 		viper.SetConfigName(name)
 		viper.AddConfigPath(filepath.Dir(filename))
-		Info.Println("Counfigfile found")
+		utils.Info.Println("Counfigfile found")
 		err := viper.ReadInConfig()
 		if err != nil {
 			return nil, err
@@ -51,9 +52,9 @@ func GetArguments(filename string) (*Configuration, error) {
 
 	if viper.InConfig("address") || viper.IsSet("address") {
 		config.Url = "http://" + viper.GetString("address") + "/jsonrpc"
-		Info.Println("Aria2 URL: ", config.Url)
+		utils.Info.Println("Aria2 URL: ", config.Url)
 	} else {
-		Error.Fatalln(ERROR_URL_MISSING)
+		utils.Error.Fatalln(ERROR_URL_MISSING)
 		return nil, errors.New(ERROR_URL_MISSING)
 	}
 
@@ -61,45 +62,45 @@ func GetArguments(filename string) (*Configuration, error) {
 		modeString := viper.GetString("mode")
 		if strings.TrimSpace(modeString) == "download" || strings.TrimSpace(modeString) == "d" {
 			config.Mode = "d"
-			Info.Println("Mode: download")
+			utils.Info.Println("Mode: download")
 		} else if strings.TrimSpace(modeString) == "organize" || strings.TrimSpace(modeString) == "o" {
 			config.Mode = "o"
-			Info.Println("Mode: organize")
+			utils.Info.Println("Mode: organize")
 		} else {
-			Error.Fatalln(ERROR_WRONG_MODE)
+			utils.Error.Fatalln(ERROR_WRONG_MODE)
 			return nil, errors.New(ERROR_WRONG_MODE)
 		}
 
 	} else {
-		Error.Fatalln(ERROR_MODE_MISSING)
+		utils.Error.Fatalln(ERROR_MODE_MISSING)
 		return nil, errors.New(ERROR_MODE_MISSING)
 	}
 
 	if viper.InConfig("oauth_token") || viper.IsSet("oauth_token") {
 		config.Oauthtoken = viper.GetString("oauth_token")
-		Info.Println("Oauthtoken: ", config.Oauthtoken)
+		utils.Info.Println("Oauthtoken: ", config.Oauthtoken)
 	} else {
-		Error.Fatalln(ERROR_TOKEN_MISSING)
+		utils.Error.Fatalln(ERROR_TOKEN_MISSING)
 		return nil, errors.New(ERROR_TOKEN_MISSING)
 	}
 
 	if config.Mode == "o" {
 		if viper.InConfig("foldername") || viper.IsSet("foldername") {
 			config.Foldername = viper.GetString("foldername")
-			Info.Println("Foldername: ", config.Foldername)
+			utils.Info.Println("Foldername: ", config.Foldername)
 		} else {
-			Error.Fatalln(ERROR_FOLDERNAME_MISSING)
+			utils.Error.Fatalln(ERROR_FOLDERNAME_MISSING)
 			return nil, errors.New(ERROR_FOLDERNAME_MISSING)
 		}
 	}
 
 	if viper.InConfig("filter") || viper.IsSet("filter") {
 		config.Filter = viper.GetString("filter")
-		Info.Println("Filter: ", config.Filter)
+		utils.Info.Println("Filter: ", config.Filter)
 	}
 	if viper.InConfig("destination") || viper.IsSet("destination") {
 		config.Destination = viper.GetString("destination")
-		Info.Println("Destination: ", config.Destination)
+		utils.Info.Println("Destination: ", config.Destination)
 	}
 	return &config, nil
 }
