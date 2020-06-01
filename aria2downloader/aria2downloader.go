@@ -1,9 +1,9 @@
 package aria2downloader
 
 import (
-	"encoding/json"
+	//"encoding/json"
 
-	"github.com/azak-azkaran/putio-go-aria2/utils"
+	//"github.com/azak-azkaran/putio-go-aria2/utils"
 	cmap "github.com/orcaman/concurrent-map"
 )
 
