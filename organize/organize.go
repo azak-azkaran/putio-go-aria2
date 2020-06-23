@@ -99,6 +99,10 @@ func RemoveOfflineFile(path string, stats os.FileInfo) bool {
 	//	utils.Warning.Println("Size between files is different: ", "\nOnline: ", strconv.FormatInt(file.Size, 10), "\nOffline: ", strconv.FormatInt(stats.Size(), 10))
 	//}
 
+	if _, err := os.Stat(path + ".aria2"); err == nil {
+		utils.Info.Println("Aria2 is still downloading File: ", path)
+		return true
+	}
 	//if stats.Size() == 0 {
 	utils.Warning.Println("Trying to Remove: ", path)
 	utils.Warning.Println("Lokal File size is: ", strconv.FormatInt(stats.Size(), 10), " removing file ")
@@ -130,11 +134,6 @@ func SetOwner(pid int, gid int, path string) {
 func HandleFile(putFile PutIoFiles, file os.FileInfo, foldername string, conf Configuration, removeFile bool, moveFileToFolder string) {
 	utils.Info.Println("Handling File: ", file.Name())
 	completeFilepath := foldername + file.Name()
-
-	if _, err := os.Stat(foldername + file.Name() + ".aria2"); err == nil {
-		utils.Info.Println("Aria2 is still downloading File: ", file.Name())
-		return
-	}
 
 	completeFolderpath := moveFileToFolder + putFile.Folder
 	compare := CompareFiles(completeFilepath, putFile)
