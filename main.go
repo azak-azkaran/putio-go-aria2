@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	"github.com/azak-azkaran/putio-go-aria2/aria2downloader"
@@ -8,10 +9,35 @@ import (
 	util "github.com/azak-azkaran/putio-go-aria2/utils"
 )
 
+func GetConfig() (*Configuration, error) {
+	config, err := GetArguments("./config.yml")
+	if err != nil {
+		util.Error.Println(err)
+	} else {
+		return config, nil
+	}
+
+	config, err = GetArguments("/config/download.yml")
+	if err != nil {
+		util.Error.Println(err)
+	} else {
+		return config, nil
+	}
+
+	config, err = GetArguments("/config/organize.yml")
+	if err != nil {
+		util.Error.Println(err)
+	} else {
+		return config, nil
+	}
+
+	return nil, errors.New("No config file found in /config/ folder or in ./config.yml")
+}
+
 func main() {
 	util.Init(os.Stdout, os.Stdout, os.Stderr)
 
-	config, err := GetArguments("./config.yml")
+	config, err := GetConfig()
 	if err != nil {
 		panic(err)
 	}
